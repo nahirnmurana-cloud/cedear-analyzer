@@ -19,7 +19,7 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 export async function GET() {
   try {
-    const candidates = CEDEAR_LIST.slice(0, 20);
+    const candidates = CEDEAR_LIST;
     const analyses: CedearAnalysis[] = [];
 
     for (const cedear of candidates) {
