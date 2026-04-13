@@ -8,7 +8,9 @@ import { CedearAnalysis } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 900;
-export const maxDuration = 60;
+export const maxDuration = 120;
+
+const MIN_AVG_VOLUME = 500;
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>
@@ -19,16 +21,26 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 export async function GET() {
   try {
-    const candidates = CEDEAR_LIST;
     const analyses: CedearAnalysis[] = [];
+    let skippedLowVolume = 0;
+    let skippedError = 0;
 
-    for (const cedear of candidates) {
+    for (const cedear of CEDEAR_LIST) {
       try {
         const { candles, meta } = await withTimeout(
           fetchChartData(cedear.ticker, '1y', '1d'),
-          10000
+          8000
         );
         if (candles.length < 50) continue;
+
+        // Filtro de liquidez: volumen promedio de ultimas 20 ruedas
+        const recentCandles = candles.slice(-20);
+        const avgVolume =
+          recentCandles.reduce((s, c) => s + c.volume, 0) / recentCandles.length;
+        if (avgVolume < MIN_AVG_VOLUME) {
+          skippedLowVolume++;
+          continue;
+        }
 
         const currentPrice = meta.regularMarketPrice || candles[candles.length - 1].close;
         const previousClose = candles[candles.length - 2]?.close ?? currentPrice;
@@ -58,38 +70,31 @@ export async function GET() {
           lastUpdated: new Date().toISOString(),
         });
       } catch {
+        skippedError++;
         continue;
       }
     }
 
-    // Sort by score descending, return top 5
     analyses.sort((a, b) => b.score.total - a.score.total);
     const top = analyses.slice(0, 5).map((a) => ({
       ...a,
       candles: [],
       indicatorSeries: {
-        dates: [],
-        close: [],
-        sma20: [],
-        sma50: [],
-        sma200: [],
-        rsi: [],
-        macdLine: [],
-        macdSignal: [],
-        macdHistogram: [],
-        plusDI: [],
-        minusDI: [],
-        adx: [],
-        volume: [],
-        bollingerUpper: [],
-        bollingerLower: [],
-        atr: [],
-        stochasticK: [],
-        stochasticD: [],
+        dates: [], close: [], sma20: [], sma50: [], sma200: [],
+        rsi: [], macdLine: [], macdSignal: [], macdHistogram: [],
+        plusDI: [], minusDI: [], adx: [], volume: [],
+        bollingerUpper: [], bollingerLower: [], atr: [],
+        stochasticK: [], stochasticD: [],
       },
     }));
 
-    return NextResponse.json({ top });
+    return NextResponse.json({
+      top,
+      analyzed: analyses.length,
+      totalCedears: CEDEAR_LIST.length,
+      skippedLowVolume,
+      skippedError,
+    });
   } catch (error) {
     console.error('Error computing top:', error);
     return NextResponse.json(

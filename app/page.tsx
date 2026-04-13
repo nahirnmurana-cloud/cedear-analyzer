@@ -26,11 +26,11 @@ export default function HomePage() {
         <div className="flex justify-center gap-6 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-green-500" />
-            50 CEDEARs analizados
+            200+ CEDEARs disponibles
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-blue-500" />
-            7 indicadores tecnicos
+            10 indicadores tecnicos
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-500" />

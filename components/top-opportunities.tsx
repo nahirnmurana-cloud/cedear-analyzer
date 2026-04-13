@@ -4,7 +4,7 @@ import { useTopOpportunities } from '@/hooks/use-cedear-data';
 import { CedearCard } from './cedear-card';
 
 export function TopOpportunities() {
-  const { top, isLoading, error } = useTopOpportunities();
+  const { top, analyzed, totalCedears, isLoading, error } = useTopOpportunities();
 
   return (
     <div className="space-y-4">
@@ -12,7 +12,9 @@ export function TopOpportunities() {
         <div>
           <h2 className="text-xl font-bold">Top 5 Oportunidades</h2>
           <p className="text-sm text-muted-foreground">
-            CEDEARs con mejor score tecnico compuesto
+            {analyzed > 0
+              ? `Mejores de ${analyzed} CEDEARs con liquidez analizados (de ${totalCedears} totales)`
+              : 'CEDEARs con mejor score tecnico compuesto'}
           </p>
         </div>
         {isLoading && (

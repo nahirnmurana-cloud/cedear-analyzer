@@ -23,13 +23,25 @@ export function useCedearAnalysis(ticker: string | null) {
 }
 
 export function useTopOpportunities() {
-  const { data, error, isLoading } = useSWR<{ top: CedearAnalysis[] }>(
+  const { data, error, isLoading } = useSWR<{
+    top: CedearAnalysis[];
+    analyzed?: number;
+    totalCedears?: number;
+    skippedLowVolume?: number;
+    skippedError?: number;
+  }>(
     '/api/top',
     fetcher,
     { refreshInterval: 900000 }
   );
 
-  return { top: data?.top ?? [], error, isLoading };
+  return {
+    top: data?.top ?? [],
+    analyzed: data?.analyzed ?? 0,
+    totalCedears: data?.totalCedears ?? 0,
+    error,
+    isLoading,
+  };
 }
 
 export function useCedearList() {
