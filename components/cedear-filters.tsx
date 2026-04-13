@@ -1,19 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useCedearList } from '@/hooks/use-cedear-data';
+import { useTopOpportunities } from '@/hooks/use-cedear-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CedearAnalysis } from '@/lib/types';
 import { RecommendationBadge } from './recommendation-badge';
 import Link from 'next/link';
-import useSWR from 'swr';
-
-async function fetcher<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Error ${res.status}`);
-  return res.json();
-}
 
 type FilterType =
   | 'all'
@@ -61,13 +54,7 @@ export function CedearFilters() {
   const [filter, setFilter] = useState<FilterType>('all');
   const [expanded, setExpanded] = useState(false);
 
-  const { data, isLoading } = useSWR<{ top: CedearAnalysis[] }>(
-    '/api/top',
-    fetcher,
-    { refreshInterval: 900000 }
-  );
-
-  const allAnalyses = data?.top ?? [];
+  const { top: allAnalyses, isLoading } = useTopOpportunities();
 
   const filtered = allAnalyses.filter((a) => {
     switch (filter) {
