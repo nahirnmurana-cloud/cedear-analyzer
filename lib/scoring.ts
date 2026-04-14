@@ -114,33 +114,41 @@ const WEIGHTS = {
 };
 
 // --- Factor: Momentum (0-100) ---
+// MACD solo no alcanza — necesita al menos RSI o estocastico acompanando
 function scoreMomentum(indicators: TechnicalIndicators): { score: number; reasons: string[]; warns: string[] } {
   let s = 0;
   const reasons: string[] = [];
   const warns: string[] = [];
 
+  let macdBullish = false;
+  let rsiBullish = false;
+  let stochBullish = false;
+
   if (indicators.macd) {
     if (indicators.macd.macdLine > indicators.macd.signalLine) {
-      s += 35;
+      s += 25;
+      macdBullish = true;
       reasons.push('MACD cruzo al alza');
       if (indicators.macd.macdLine < 0) {
-        s += 15; // Cruce desde territorio negativo = early
+        s += 10;
         reasons.push('Cruce desde territorio negativo (senal temprana)');
       }
     } else {
       warns.push('MACD bajista');
     }
-    if (indicators.macd.histogram > 0) s += 10;
+    if (indicators.macd.histogram > 0) s += 5;
   }
 
   if (indicators.rsi != null) {
     if (indicators.rsi >= 35 && indicators.rsi <= 55) {
-      s += 25;
+      s += 20;
+      rsiBullish = true;
       reasons.push(`RSI en ${indicators.rsi.toFixed(0)} (zona de recuperacion)`);
     } else if (indicators.rsi > 55 && indicators.rsi <= 65) {
       s += 10;
+      rsiBullish = true;
     } else if (indicators.rsi < 35) {
-      s += 15;
+      s += 10;
       reasons.push(`RSI en ${indicators.rsi.toFixed(0)} (sobreventa)`);
     } else if (indicators.rsi > 70) {
       s -= 10;
@@ -151,7 +159,17 @@ function scoreMomentum(indicators: TechnicalIndicators): { score: number; reason
   if (indicators.stochastic) {
     if (indicators.stochastic.k > indicators.stochastic.d && indicators.stochastic.k < 60) {
       s += 15;
+      stochBullish = true;
     }
+  }
+
+  // Bonus por confluencia: MACD + al menos otra senal
+  const confirmations = [macdBullish, rsiBullish, stochBullish].filter(Boolean).length;
+  if (confirmations >= 2) {
+    s += 15; // Confluencia de senales
+  } else if (macdBullish && confirmations === 1) {
+    s -= 10; // MACD solo, sin confirmacion
+    warns.push('Momentum solo por MACD, sin confirmacion de RSI/Estocastico');
   }
 
   return { score: clamp(s, 0, 100), reasons, warns };
@@ -196,8 +214,8 @@ function scoreTrendFormation(indicators: TechnicalIndicators, price: number, sma
 // Combina: distancia a medias, pendiente de SMAs, extension reciente, pullback
 function scoreEntryTiming(
   price: number, indicators: TechnicalIndicators,
-  var5d: number, var10d: number,
-  sma20Rising: boolean, sma50Slope: number // slope = pendiente de SMA50 en %
+  var5d: number, var10d: number, varMonth: number,
+  sma20Rising: boolean, sma50Slope: number
 ): { score: number; reasons: string[]; warns: string[] } {
   let s = 0;
   const reasons: string[] = [];
@@ -268,6 +286,26 @@ function scoreEntryTiming(
     s += 10;
   } else if (var10d > 0) {
     s += 5;
+  }
+
+  // 6. Variacion mensual: caida fuerte = no es recuperacion, es caida en curso
+  if (varMonth < -5) {
+    s -= 20;
+    warns.push(`Caida mensual de ${varMonth.toFixed(1)}% (tendencia bajista de fondo)`);
+  } else if (varMonth < -2) {
+    s -= 10;
+  }
+
+  // 7. Precio muy debajo de SMA200 = accion destruida, no oportunidad
+  if (indicators.sma200 != null && price > 0) {
+    const distSma200 = ((indicators.sma200 - price) / price) * 100;
+    if (distSma200 > 25) {
+      s -= 25;
+      warns.push(`${distSma200.toFixed(0)}% debajo de SMA200 (accion muy castigada)`);
+    } else if (distSma200 > 15) {
+      s -= 15;
+      warns.push(`${distSma200.toFixed(0)}% debajo de SMA200`);
+    }
   }
 
   return { score: clamp(s, 0, 100), reasons, warns };
@@ -444,6 +482,7 @@ export function computeOpportunityScore(
   // Variaciones
   const var5d = n >= 6 ? ((price - closes[n - 6]) / closes[n - 6]) * 100 : 0;
   const var10d = n >= 11 ? ((price - closes[n - 11]) / closes[n - 11]) * 100 : 0;
+  const varMonth = n >= 22 ? ((price - closes[n - 22]) / closes[n - 22]) * 100 : 0;
 
   // Rango de lateralidad
   const last10 = candles.slice(-10);
@@ -474,7 +513,7 @@ export function computeOpportunityScore(
   // Calcular cada factor
   const mom = scoreMomentum(indicators);
   const trend = scoreTrendFormation(indicators, price, sma20Rising);
-  const timing = scoreEntryTiming(price, indicators, var5d, var10d, sma20Rising, sma50Slope);
+  const timing = scoreEntryTiming(price, indicators, var5d, var10d, varMonth, sma20Rising, sma50Slope);
   const vol = scoreVolume(indicators, price, previousClose, upDaysWithVol);
   const rr = scoreRiskReward(price, indicators);
   const quality = scoreSetupQuality(var5d, rangePct, indicators);
