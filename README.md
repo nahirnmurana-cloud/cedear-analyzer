@@ -60,6 +60,7 @@ Score basado en 6 factores conceptuales, cada uno calculado de 0 a 100 y pondera
 - **Filtros** — Solo Compra, Sobre SMA200, RSI < 35, Volumen alto
 - **Descripciones educativas** de cada indicador con interpretacion y senal actual
 - **Dark mode**, loading skeletons, error boundaries
+- **Autenticacion con Clerk** — Login con Google/email, watchlist sincronizada en la nube. Sin login la app funciona completa (watchlist en localStorage). 10,000 usuarios/mes gratis.
 
 ## Stack
 
@@ -67,6 +68,7 @@ Score basado en 6 factores conceptuales, cada uno calculado de 0 a 100 y pondera
 |---|---|
 | Framework | Next.js 16 (App Router, TypeScript) |
 | UI | Tailwind CSS 4 + shadcn/ui |
+| Auth | Clerk Core 3 (Vercel Marketplace) |
 | Graficos precio | lightweight-charts (TradingView) |
 | Graficos indicadores | Recharts |
 | Data fetching | SWR (auto-refresh 5-15 min) |
@@ -92,6 +94,13 @@ app/api/
   cedears/            # Lista con precios
   quotes/             # Cotizaciones batch
   underlying/[ticker]/ # Subyacente en USD
+  watchlist/          # GET/POST/DELETE watchlist (Clerk user metadata)
+
+app/
+  sign-in/            # Pagina de login (Clerk)
+  sign-up/            # Pagina de registro (Clerk)
+
+middleware.ts          # Clerk auth middleware
 
 components/
   opportunity-score   # Gauge + breakdown de factores + explicaciones
@@ -112,6 +121,7 @@ components/
 
 ```bash
 npm install
+vercel env pull .env.local  # Baja las keys de Clerk
 npm run dev
 ```
 
@@ -121,6 +131,16 @@ npm run dev
 git push origin main
 vercel deploy --prod
 ```
+
+## Autenticacion
+
+Auth via Clerk (Vercel Marketplace). Env vars auto-provisioned:
+- `CLERK_SECRET_KEY` — server-side
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — client-side
+- `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`
+- `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`
+
+La watchlist se guarda en Clerk user metadata (sin base de datos). Sin login, se usa localStorage.
 
 ## Disclaimer
 

@@ -41,6 +41,15 @@ Sos el asistente de desarrollo del proyecto CEDEAR Analyzer.
 - `components/opportunity-score.tsx` — UI de oportunidad con factores
 - `components/market-phase.tsx` — Fase de mercado derivada
 
+## Auth
+- Clerk Core 3 via Vercel Marketplace (auto-provisioned keys)
+- `middleware.ts` — clerkMiddleware() sin bloquear rutas publicas
+- `app/api/watchlist/route.ts` — GET/POST/DELETE con auth() + clerkClient()
+- Watchlist en Clerk user unsafeMetadata (sin DB)
+- `hooks/use-watchlist.ts` — API si logueado, localStorage si no
+- Header: UserButton si logueado, SignInButton mode="modal" si no
+- 10k usuarios/mes gratis (Clerk free tier)
+
 ## Reglas
 1. Lee archivos antes de modificar
 2. Respeta la arquitectura de factores en scoring
@@ -48,6 +57,7 @@ Sos el asistente de desarrollo del proyecto CEDEAR Analyzer.
 4. yahoo-finance2 v3, cache obligatorio
 5. UI en espanol
 6. Deploy: `git push && vercel deploy --prod`
+7. Clerk: auth() y clerkClient() son async (Core 3). Importar de `@clerk/nextjs/server`.
 
 ## Mejoras futuras
 - Oportunidades de venta (tendencia bajista despues de romper media)
