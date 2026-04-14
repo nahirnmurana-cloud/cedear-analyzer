@@ -20,6 +20,7 @@ import { MetricDetailPanel } from '@/components/metric-detail';
 import { AlertsPanel } from '@/components/alerts';
 import { BacktestPanel } from '@/components/backtest-panel';
 import { CclComparison } from '@/components/ccl-comparison';
+import { OpportunityGauge, OpportunityBreakdown } from '@/components/opportunity-score';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -170,16 +171,21 @@ export default function CedearDetailPage({
         </Button>
       </div>
 
-      {/* Price + Score row */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      {/* Price + Scores row */}
+      <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
         <Card className="lg:col-span-3">
           <CardContent className="p-5">
             <PriceStats price={data.currentPrice} change={data.change} />
           </CardContent>
         </Card>
-        <Card className="flex items-center justify-center">
-          <CardContent className="p-5">
-            <ScoreGauge score={data.score} size="lg" />
+        <Card className="lg:col-span-1.5 flex items-center justify-center">
+          <CardContent className="p-4">
+            <OpportunityGauge score={data.opportunityScore} />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-1.5 flex items-center justify-center">
+          <CardContent className="p-4">
+            <ScoreGauge score={data.score} size="md" />
           </CardContent>
         </Card>
       </div>
@@ -259,22 +265,37 @@ export default function CedearDetailPage({
         </Card>
       </div>
 
-      {/* Score Breakdown */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Desglose del Score</CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Puntaje compuesto de 0 a 100 basado en 6 categorias de analisis
-            tecnico
-          </p>
-        </CardHeader>
-        <CardContent className="max-w-2xl">
-          <ScoreBreakdownTable
-            score={data.score}
-            recommendation={data.recommendation}
-          />
-        </CardContent>
-      </Card>
+      {/* Score Breakdowns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Oportunidad de Compra</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Detecta recuperaciones tempranas: precio debajo de la media,
+              momentum girando, breakout con volumen. Comprar ANTES de que
+              llegue a la media.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <OpportunityBreakdown score={data.opportunityScore} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Salud Tecnica</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Evalua el estado tecnico general: tendencia, momentum, fuerza,
+              volumen, volatilidad y niveles clave.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ScoreBreakdownTable
+              score={data.score}
+              recommendation={data.recommendation}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Indicadores Tecnicos - full width, descripciones siempre visibles */}
       <Card>

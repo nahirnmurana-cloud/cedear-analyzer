@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { RecommendationBadge } from './recommendation-badge';
-import { Recommendation, ScoreBreakdown } from '@/lib/types';
+import { Recommendation, ScoreBreakdown, OpportunityScore } from '@/lib/types';
 
 function formatPrice(price: number): string {
   return price.toLocaleString('es-AR', {
@@ -26,6 +26,7 @@ interface CedearCardProps {
   price: number;
   change: number;
   score: ScoreBreakdown;
+  opportunityScore?: OpportunityScore;
   recommendation: Recommendation;
   summary: string;
 }
@@ -36,9 +37,12 @@ export function CedearCard({
   price,
   change,
   score,
+  opportunityScore,
   recommendation,
   summary,
 }: CedearCardProps) {
+  // En Top 5, mostrar opportunity score. En watchlist, health score.
+  const displayScore = opportunityScore?.total ?? score.total;
   const ch = formatChange(change);
 
   return (
@@ -69,20 +73,25 @@ export function CedearCard({
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
-                  width: `${Math.min(score.total, 100)}%`,
+                  width: `${Math.min(displayScore, 100)}%`,
                   backgroundColor:
-                    score.total >= 65
+                    displayScore >= 60
                       ? '#22c55e'
-                      : score.total >= 45
+                      : displayScore >= 40
                         ? '#eab308'
                         : '#ef4444',
                 }}
               />
             </div>
             <span className="text-sm font-bold tabular-nums w-8 text-right">
-              {score.total}
+              {displayScore}
             </span>
           </div>
+          {opportunityScore && (
+            <p className="text-[10px] text-muted-foreground">
+              Oportunidad: {displayScore} · Salud: {score.total}
+            </p>
+          )}
 
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
             {summary}

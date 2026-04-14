@@ -10,11 +10,11 @@ export function TopOpportunities() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Top 5 Oportunidades</h2>
+          <h2 className="text-xl font-bold">Top 5 Oportunidades de Compra</h2>
           <p className="text-sm text-muted-foreground">
             {analyzed > 0
-              ? `Mejores de ${analyzed} CEDEARs con liquidez analizados (de ${totalCedears} totales)`
-              : 'CEDEARs con mejor score tecnico compuesto'}
+              ? `Mejores oportunidades de ${analyzed} CEDEARs analizados — recuperaciones tempranas con momentum girando`
+              : 'CEDEARs con mejor score de oportunidad de compra'}
           </p>
         </div>
         {isLoading && (
@@ -56,6 +56,7 @@ export function TopOpportunities() {
                 price={analysis.currentPrice}
                 change={analysis.change.daily}
                 score={analysis.score}
+                opportunityScore={analysis.opportunityScore}
                 recommendation={analysis.recommendation}
                 summary={analysis.summary}
               />

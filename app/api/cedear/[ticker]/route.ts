@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { findCedear } from '@/lib/cedears';
 import { fetchChartData } from '@/lib/yahoo';
 import { computeIndicators } from '@/lib/indicators';
-import { computeScore, getRecommendation } from '@/lib/scoring';
+import { computeScore, computeOpportunityScore, getRecommendation } from '@/lib/scoring';
 import { generateSummary } from '@/lib/recommendation';
 import { CedearAnalysis } from '@/lib/types';
 
@@ -49,6 +49,7 @@ export async function GET(
 
     const { latest: indicators, series: indicatorSeries } = computeIndicators(candles);
     const score = computeScore(currentPrice, indicators, previousClose);
+    const opportunityScore = computeOpportunityScore(currentPrice, indicators, previousClose);
     const recommendation = getRecommendation(score.total);
     const summary = generateSummary(
       info.ticker,
@@ -67,6 +68,7 @@ export async function GET(
       indicators,
       indicatorSeries,
       score,
+      opportunityScore,
       recommendation,
       summary,
       lastUpdated: new Date().toISOString(),

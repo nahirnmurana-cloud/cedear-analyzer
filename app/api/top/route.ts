@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { CEDEAR_LIST } from '@/lib/cedears';
 import { fetchChartData } from '@/lib/yahoo';
 import { computeIndicators } from '@/lib/indicators';
-import { computeScore, getRecommendation } from '@/lib/scoring';
+import { computeScore, computeOpportunityScore, getRecommendation } from '@/lib/scoring';
 import { generateSummary } from '@/lib/recommendation';
 import { CedearAnalysis } from '@/lib/types';
 
@@ -53,6 +53,7 @@ export async function GET() {
 
         const { latest: indicators, series: indicatorSeries } = computeIndicators(candles);
         const score = computeScore(currentPrice, indicators, previousClose);
+        const opportunityScore = computeOpportunityScore(currentPrice, indicators, previousClose);
         const recommendation = getRecommendation(score.total);
         const summary = generateSummary(cedear.ticker, currentPrice, indicators, score, recommendation);
 
@@ -65,6 +66,7 @@ export async function GET() {
           indicators,
           indicatorSeries,
           score,
+          opportunityScore,
           recommendation,
           summary,
           lastUpdated: new Date().toISOString(),
@@ -75,7 +77,8 @@ export async function GET() {
       }
     }
 
-    analyses.sort((a, b) => b.score.total - a.score.total);
+    // Ordenar por OPORTUNIDAD de compra, no por salud tecnica
+    analyses.sort((a, b) => b.opportunityScore.total - a.opportunityScore.total);
     const top = analyses.slice(0, 5).map((a) => ({
       ...a,
       candles: [],

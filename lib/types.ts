@@ -87,6 +87,17 @@ export interface ScoreBreakdown {
   total: number;
 }
 
+// Score de oportunidad: detecta recuperaciones tempranas
+export interface OpportunityScore {
+  recoveryPosition: number;   // max 25 — precio abajo de media pero subiendo
+  momentumShift: number;      // max 20 — MACD/RSI girando positivo
+  breakoutSignals: number;    // max 20 — ruptura de resistencia corta
+  trendFormation: number;     // max 15 — ADX subiendo, DI+ tomando control
+  volumeConfirmation: number; // max 10 — volumen acompanando la suba
+  riskReward: number;         // max 10 — cerca de soporte, espacio para subir
+  total: number;
+}
+
 export type Recommendation =
   | 'Compra Fuerte'
   | 'Comprar'
@@ -107,6 +118,7 @@ export interface CedearAnalysis {
   indicators: TechnicalIndicators;
   indicatorSeries: IndicatorSeries;
   score: ScoreBreakdown;
+  opportunityScore: OpportunityScore;
   recommendation: Recommendation;
   summary: string;
   lastUpdated: string;
