@@ -26,7 +26,7 @@ export default function HomePage() {
         <div className="flex justify-center gap-6 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-green-500" />
-            200+ CEDEARs disponibles
+            280+ CEDEARs disponibles
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-blue-500" />

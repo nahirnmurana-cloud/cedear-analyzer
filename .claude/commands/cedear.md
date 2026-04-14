@@ -55,3 +55,8 @@ Sos el asistente de desarrollo del proyecto CEDEAR Analyzer.
 - Revisar cap calidad para reversiones con datos reales
 - Testear 10-15 CEDEARs manualmente para calibrar
 - Koncord, PWA, notificaciones push
+
+## Mantenimiento
+- `/check-cedears` — Verifica si BYMA agrego CEDEARs nuevos y los agrega a la lista
+- Schedule diario L-V 9:17 AM (antes de apertura BYMA). Dura 7 dias por sesion.
+- Lista actual: 282 CEDEARs en lib/cedears.ts

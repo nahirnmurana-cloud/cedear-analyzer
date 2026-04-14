@@ -49,7 +49,7 @@ Score basado en 6 factores conceptuales, cada uno calculado de 0 a 100 y pondera
 
 ## Features
 
-- **202 CEDEARs** con filtro de liquidez dinamico (volumen promedio 20d > 500)
+- **282 CEDEARs** con filtro de liquidez dinamico (volumen promedio 20d > 500). Lista verificada diariamente.
 - **Top 5 oportunidades de compra** ordenado por score de oportunidad, no por salud
 - **Watchlist con valoracion** — score, recomendacion y resumen por CEDEAR guardado
 - **10 indicadores tecnicos** — SMA/EMA 20/50/200, RSI, MACD, DMI/ADX, Bollinger, ATR, Estocastico, Volumen, Soporte/Resistencia
@@ -83,7 +83,7 @@ lib/
   recommendation.ts   # Generador de resumen en espanol
   metric-descriptions.ts  # Descripciones educativas
   yahoo.ts            # Cliente yahoo-finance2 con cache
-  cedears.ts          # 202 CEDEARs
+  cedears.ts          # 282 CEDEARs (verificacion diaria)
   types.ts            # Interfaces TypeScript
 
 app/api/

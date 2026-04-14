@@ -234,6 +234,106 @@ export const CEDEAR_LIST: CedearInfo[] = [
   { ticker: 'ILF.BA', name: 'iShares Latin America 40', localTicker: 'ILF', sector: 'ETF', ratio: 6 },
   { ticker: 'COPX.BA', name: 'Global X Copper Miners', localTicker: 'COPX', sector: 'ETF', ratio: 14 },
   { ticker: 'TQQQ.BA', name: 'ProShares UltraPro QQQ', localTicker: 'TQQQ', sector: 'ETF', ratio: 25 },
+  { ticker: 'XLP.BA', name: 'Consumer Staples SPDR', localTicker: 'XLP', sector: 'ETF', ratio: 16 },
+  { ticker: 'XLY.BA', name: 'Consumer Disc. SPDR', localTicker: 'XLY', sector: 'ETF', ratio: 43 },
+  { ticker: 'XLB.BA', name: 'Materials SPDR', localTicker: 'XLB', sector: 'ETF', ratio: 18 },
+  { ticker: 'XLI.BA', name: 'Industrial SPDR', localTicker: 'XLI', sector: 'ETF', ratio: 28 },
+  { ticker: 'XLC.BA', name: 'Comm. Services SPDR', localTicker: 'XLC', sector: 'ETF', ratio: 19 },
+  { ticker: 'ETHA.BA', name: 'iShares Ethereum Trust', localTicker: 'ETHA', sector: 'ETF', ratio: 5 },
+  { ticker: 'EWJ.BA', name: 'iShares MSCI Japan', localTicker: 'EWJ', sector: 'ETF', ratio: 14 },
+  { ticker: 'SH.BA', name: 'ProShares Short S&P 500', localTicker: 'SH', sector: 'ETF', ratio: 8 },
+  { ticker: 'PSQ.BA', name: 'ProShares Short QQQ', localTicker: 'PSQ', sector: 'ETF', ratio: 8 },
+  { ticker: 'ITA.BA', name: 'iShares Aerospace & Defense', localTicker: 'ITA', sector: 'ETF', ratio: 50 },
+  { ticker: 'VEA.BA', name: 'Vanguard FTSE Developed', localTicker: 'VEA', sector: 'ETF', ratio: 10 },
+
+  // ═══ TECNOLOGIA (adicionales) ═══
+  { ticker: 'SWKS.BA', name: 'Skyworks Solutions', localTicker: 'SWKS', sector: 'Semiconductores', ratio: 21 },
+  { ticker: 'TWLO.BA', name: 'Twilio Inc.', localTicker: 'TWLO', sector: 'Tecnologia', ratio: 36 },
+  { ticker: 'GLW.BA', name: 'Corning Inc.', localTicker: 'GLW', sector: 'Tecnologia', ratio: 4 },
+  { ticker: 'BB.BA', name: 'BlackBerry Ltd.', localTicker: 'BB', sector: 'Tecnologia', ratio: 3 },
+  { ticker: 'PATH.BA', name: 'UiPath Inc.', localTicker: 'PATH', sector: 'Tecnologia', ratio: 2 },
+  { ticker: 'XPEV.BA', name: 'XPeng Inc.', localTicker: 'XPEV', sector: 'Automotriz', ratio: 4 },
+  { ticker: 'MSI.BA', name: 'Motorola Solutions', localTicker: 'MSI', sector: 'Tecnologia', ratio: 20 },
+  { ticker: 'DESP.BA', name: 'Despegar.com', localTicker: 'DESP', sector: 'Turismo', ratio: 1 },
+  { ticker: 'SATL.BA', name: 'Satellogic', localTicker: 'SATL', sector: 'Aeroespacial', ratio: 1 },
+  { ticker: 'ASTS.BA', name: 'AST SpaceMobile', localTicker: 'ASTS', sector: 'Aeroespacial', ratio: 15 },
+
+  // ═══ FINANZAS (adicionales) ═══
+  { ticker: 'USB.BA', name: 'U.S. Bancorp', localTicker: 'USB', sector: 'Finanzas', ratio: 5 },
+  { ticker: 'AIG.BA', name: 'American Intl Group', localTicker: 'AIG', sector: 'Finanzas', ratio: 5 },
+  { ticker: 'MMC.BA', name: 'Marsh & McLennan', localTicker: 'MMC', sector: 'Finanzas', ratio: 16 },
+  { ticker: 'ING.BA', name: 'ING Groep NV', localTicker: 'ING', sector: 'Finanzas', ratio: 3 },
+  { ticker: 'BCS.BA', name: 'Barclays Bank', localTicker: 'BCS', sector: 'Finanzas', ratio: 1 },
+  { ticker: 'EFX.BA', name: 'Equifax Inc.', localTicker: 'EFX', sector: 'Finanzas', ratio: 16 },
+  { ticker: 'STNE.BA', name: 'StoneCo Ltd.', localTicker: 'STNE', sector: 'Fintech', ratio: 3 },
+  { ticker: 'IBN.BA', name: 'ICICI Bank Ltd.', localTicker: 'IBN', sector: 'Finanzas', ratio: 1 },
+  { ticker: 'BSBR.BA', name: 'Banco Santander Brasil', localTicker: 'BSBR', sector: 'Finanzas', ratio: 1 },
+
+  // ═══ SALUD (adicionales) ═══
+  { ticker: 'BIIB.BA', name: 'Biogen Inc.', localTicker: 'BIIB', sector: 'Salud', ratio: 13 },
+  { ticker: 'DHR.BA', name: 'Danaher Corp.', localTicker: 'DHR', sector: 'Salud', ratio: 54 },
+  { ticker: 'GSK.BA', name: 'GSK Plc', localTicker: 'GSK', sector: 'Salud', ratio: 4 },
+  { ticker: 'CAH.BA', name: 'Cardinal Health', localTicker: 'CAH', sector: 'Salud', ratio: 3 },
+  { ticker: 'BIOX.BA', name: 'Bioceres Crop Sol.', localTicker: 'BIOX', sector: 'Salud', ratio: 1 },
+
+  // ═══ ENERGIA (adicionales) ═══
+  { ticker: 'BKR.BA', name: 'Baker Hughes', localTicker: 'BKR', sector: 'Energia', ratio: 7 },
+  { ticker: 'PSX.BA', name: 'Phillips 66', localTicker: 'PSX', sector: 'Energia', ratio: 6 },
+  { ticker: 'EQNR.BA', name: 'Equinor ASA', localTicker: 'EQNR', sector: 'Energia', ratio: 6 },
+  { ticker: 'OKLO.BA', name: 'Oklo Inc.', localTicker: 'OKLO', sector: 'Energia', ratio: 28 },
+  { ticker: 'GPRK.BA', name: 'GeoPark Ltd.', localTicker: 'GPRK', sector: 'Energia', ratio: 1 },
+
+  // ═══ CONSUMO (adicionales) ═══
+  { ticker: 'TJX.BA', name: 'TJX Companies', localTicker: 'TJX', sector: 'Consumo', ratio: 22 },
+  { ticker: 'ROST.BA', name: 'Ross Stores', localTicker: 'ROST', sector: 'Consumo', ratio: 4 },
+  { ticker: 'DECK.BA', name: 'Deckers Outdoor', localTicker: 'DECK', sector: 'Consumo', ratio: 25 },
+  { ticker: 'STLA.BA', name: 'Stellantis NV', localTicker: 'STLA', sector: 'Automotriz', ratio: 5 },
+  { ticker: 'HMC.BA', name: 'Honda Motor', localTicker: 'HMC', sector: 'Automotriz', ratio: 1 },
+  { ticker: 'HOG.BA', name: 'Harley-Davidson', localTicker: 'HOG', sector: 'Consumo', ratio: 3 },
+  { ticker: 'HSY.BA', name: 'Hershey Company', localTicker: 'HSY', sector: 'Consumo', ratio: 21 },
+  { ticker: 'KMB.BA', name: 'Kimberly-Clark', localTicker: 'KMB', sector: 'Consumo', ratio: 6 },
+  { ticker: 'DEO.BA', name: 'Diageo Plc', localTicker: 'DEO', sector: 'Consumo', ratio: 6 },
+  { ticker: 'FMX.BA', name: 'Fomento Economico Mex.', localTicker: 'FMX', sector: 'Consumo', ratio: 6 },
+  { ticker: 'SYY.BA', name: 'Sysco Corp.', localTicker: 'SYY', sector: 'Consumo', ratio: 8 },
+  { ticker: 'IFF.BA', name: 'Intl Flavors & Fragrances', localTicker: 'IFF', sector: 'Consumo', ratio: 12 },
+  { ticker: 'WBA.BA', name: 'Walgreens Boots', localTicker: 'WBA', sector: 'Consumo', ratio: 3 },
+
+  // ═══ INDUSTRIAL (adicionales) ═══
+  { ticker: 'PCAR.BA', name: 'Paccar Inc.', localTicker: 'PCAR', sector: 'Industrial', ratio: 3 },
+  { ticker: 'JCI.BA', name: 'Johnson Controls', localTicker: 'JCI', sector: 'Industrial', ratio: 2 },
+  { ticker: 'IP.BA', name: 'International Paper', localTicker: 'IP', sector: 'Industrial', ratio: 4 },
+  { ticker: 'HWM.BA', name: 'Howmet Aerospace', localTicker: 'HWM', sector: 'Industrial', ratio: 1 },
+  { ticker: 'ECL.BA', name: 'Ecolab Inc.', localTicker: 'ECL', sector: 'Industrial', ratio: 56 },
+  { ticker: 'EMR.BA', name: 'Emerson Electric', localTicker: 'EMR', sector: 'Industrial', ratio: 3 },
+  { ticker: 'PAC.BA', name: 'Grupo Aerop. Pacifico', localTicker: 'PAC', sector: 'Industrial', ratio: 16 },
+
+  // ═══ MINERIA (adicionales) ═══
+  { ticker: 'CDE.BA', name: 'Coeur Mining', localTicker: 'CDE', sector: 'Mineria', ratio: 1 },
+  { ticker: 'GFI.BA', name: 'Gold Fields Ltd.', localTicker: 'GFI', sector: 'Mineria', ratio: 1 },
+  { ticker: 'HMY.BA', name: 'Harmony Gold Mining', localTicker: 'HMY', sector: 'Mineria', ratio: 1 },
+  { ticker: 'LAAC.BA', name: 'Lithium Americas Arg.', localTicker: 'LAAC', sector: 'Mineria', ratio: 1 },
+  { ticker: 'NXE.BA', name: 'NexGen Energy', localTicker: 'NXE', sector: 'Mineria', ratio: 1 },
+  { ticker: 'SID.BA', name: 'CSN Siderurgica', localTicker: 'SID', sector: 'Mineria', ratio: 1 },
+  { ticker: 'GGB.BA', name: 'Gerdau S.A.', localTicker: 'GGB', sector: 'Mineria', ratio: 1 },
+  { ticker: 'SUZ.BA', name: 'Suzano S.A.', localTicker: 'SUZ', sector: 'Materiales', ratio: 1 },
+
+  // ═══ TELECOM (adicionales) ═══
+  { ticker: 'VOD.BA', name: 'Vodafone Group', localTicker: 'VOD', sector: 'Telecom', ratio: 1 },
+  { ticker: 'VIV.BA', name: 'Telefonica Brasil', localTicker: 'VIV', sector: 'Telecom', ratio: 1 },
+  { ticker: 'TIMB.BA', name: 'TIM S.A.', localTicker: 'TIMB', sector: 'Telecom', ratio: 1 },
+
+  // ═══ CRYPTO (adicionales) ═══
+  { ticker: 'BITF.BA', name: 'Bitfarms Ltd.', localTicker: 'BITF', sector: 'Crypto', ratio: 1 },
+  { ticker: 'HUT.BA', name: 'Hut 8 Mining', localTicker: 'HUT', sector: 'Crypto', ratio: 1 },
+  { ticker: 'IREN.BA', name: 'Iren Ltd.', localTicker: 'IREN', sector: 'Crypto', ratio: 12 },
+
+  // ═══ OTROS ═══
+  { ticker: 'TTM.BA', name: 'Tata Motors', localTicker: 'TTM', sector: 'Automotriz', ratio: 1 },
+  { ticker: 'PDD.BA', name: 'PDD Holdings', localTicker: 'PDD', sector: 'E-Commerce', ratio: 25 },
+  { ticker: 'JMIA.BA', name: 'Jumia Technologies', localTicker: 'JMIA', sector: 'E-Commerce', ratio: 1 },
+  { ticker: 'LFC.BA', name: 'China Life Insurance', localTicker: 'LFC', sector: 'Finanzas', ratio: 2 },
+  { ticker: 'TCOM.BA', name: 'Trip.com Group', localTicker: 'TCOM', sector: 'Turismo', ratio: 2 },
+  { ticker: 'LVS.BA', name: 'Las Vegas Sands', localTicker: 'LVS', sector: 'Turismo', ratio: 2 },
 ];
 
 export function findCedear(ticker: string): CedearInfo | undefined {
