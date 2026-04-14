@@ -20,6 +20,7 @@ import { AlertsPanel } from '@/components/alerts';
 import { BacktestPanel } from '@/components/backtest-panel';
 import { CclComparison } from '@/components/ccl-comparison';
 import { OpportunityGauge, OpportunityBreakdown } from '@/components/opportunity-score';
+import { HealthGauge } from '@/components/health-gauge';
 import { MarketPhaseCard } from '@/components/market-phase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -171,8 +172,8 @@ export default function CedearDetailPage({
         </Button>
       </div>
 
-      {/* Price + Opportunity */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      {/* Price + Scores */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card className="lg:col-span-3">
           <CardContent className="p-5">
             <PriceStats price={data.currentPrice} change={data.change} />
@@ -181,6 +182,11 @@ export default function CedearDetailPage({
         <Card className="flex items-center justify-center">
           <CardContent className="p-4">
             <OpportunityGauge score={data.opportunityScore} />
+          </CardContent>
+        </Card>
+        <Card className="flex items-center justify-center">
+          <CardContent className="p-4">
+            <HealthGauge score={data.score} />
           </CardContent>
         </Card>
       </div>
