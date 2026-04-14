@@ -19,7 +19,7 @@ export function getMarketPhase(
   const opp = opportunity.total;
   const h = health.total;
 
-  if (opp >= 55 && h < 55) {
+  if (opp >= 55 && h < 55 && opportunity.momentum >= 40) {
     return {
       phase: 'reversion',
       label: 'Reversion temprana',

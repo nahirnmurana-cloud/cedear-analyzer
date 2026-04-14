@@ -508,12 +508,13 @@ export function computeOpportunityScore(
     if (f.score >= 60 && f.reasons.length > 0) explanation.push(f.reasons[0]);
   }
 
-  const allWarnings = [
-    ...mom.warns, ...trend.warns, ...timing.warns,
-    ...vol.warns, ...rr.warns, ...quality.warns,
+  // Warnings con prioridad explicita:
+  // 1. Rally extendido (timing)  2. R/R flojo  3. Volumen debil  4. Tendencia no confirmada
+  const prioritizedWarnings = [
+    ...timing.warns, ...rr.warns, ...vol.warns,
+    ...trend.warns, ...mom.warns, ...quality.warns,
   ];
-  // Top 3 warnings
-  const warnings = allWarnings.slice(0, 3);
+  const warnings = prioritizedWarnings.slice(0, 3);
 
   return {
     momentum: mom.score,
@@ -536,13 +537,14 @@ export function getRecommendation(score: number): Recommendation {
   return 'Vender';
 }
 
-// Regla de consistencia: no dar "fuerte" si algun factor clave esta flojo
+// Regla de consistencia: 2 de 3 factores clave >= 50, ninguno < 30
 export function getOpportunityLabel(score: number, factors?: OpportunityScore): string {
   if (score >= 70) {
-    // Verificar consistencia: todos los factores clave >= 30
     if (factors) {
-      const weakFactor = factors.momentum < 30 || factors.riskReward < 30 || factors.entryTiming < 30;
-      if (weakFactor) return 'Buena oportunidad'; // Degradar si hay factor debil
+      const keyFactors = [factors.momentum, factors.entryTiming, factors.riskReward];
+      const above50 = keyFactors.filter(f => f >= 50).length;
+      const anyBelow30 = keyFactors.some(f => f < 30);
+      if (above50 < 2 || anyBelow30) return 'Buena oportunidad';
     }
     return 'Oportunidad fuerte';
   }

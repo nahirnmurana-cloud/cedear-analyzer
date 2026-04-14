@@ -105,12 +105,18 @@ export function CedearCard({
               <span className="text-muted-foreground">
                 Salud: <span className={`font-semibold ${health.color}`}>{health.text} ({score.total})</span>
               </span>
-              {score.total < 45 && opportunityScore.total >= 55 && (
+              {score.total < 45 && opportunityScore.total >= 55 && opportunityScore.momentum >= 40 && (
                 <span className="text-green-600 dark:text-green-400 font-medium">
                   Reversion temprana
                 </span>
               )}
             </div>
+          )}
+
+          {isOpportunityMode && opportunityScore.warnings.length > 0 && (
+            <p className="text-[10px] text-amber-600 dark:text-amber-400 truncate">
+              {opportunityScore.warnings[0]}
+            </p>
           )}
 
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
