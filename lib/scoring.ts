@@ -209,11 +209,15 @@ function scoreEntryTiming(
     if (distPct > 2 && distPct < 12) {
       s += 25;
       reasons.push(`${distPct.toFixed(1)}% debajo de SMA50 (entrada temprana)`);
-    } else if (distPct >= 0 && distPct <= 2) {
-      s += 15;
-      reasons.push('Cerca de SMA50, posible ruptura');
+    } else if (distPct > 1 && distPct <= 2) {
+      s += 10;
+      reasons.push('Cerca de SMA50, poco margen');
+    } else if (distPct >= 0 && distPct <= 1) {
+      s += 5; // Ya esta en la media, no es entry temprano
+      warns.push('Muy cerca de SMA50, poco upside');
     } else if (distPct < 0 && distPct > -3) {
-      s += 5; // Apenas arriba, aceptable
+      s += 0; // Ya paso la media
+      warns.push('Ya supero SMA50');
     } else if (distPct < -5) {
       s -= 15;
       warns.push('Ya supero la media por mucho (entrada tardia)');
@@ -336,12 +340,13 @@ function scoreRiskReward(
   // Upside hasta SMA50
   if (indicators.sma50 != null && indicators.sma50 > price) {
     const upsidePct = ((indicators.sma50 - price) / price) * 100;
-    if (upsidePct > 3 && upsidePct < 15) {
+    if (upsidePct >= 4 && upsidePct < 15) {
       s += 35;
       reasons.push(`${upsidePct.toFixed(1)}% de upside hasta SMA50`);
-    } else if (upsidePct >= 2) {
-      s += 15;
+    } else if (upsidePct >= 2 && upsidePct < 4) {
+      s += 10;
     }
+    // < 2% = ya esta en la media, no hay upside real
   } else if (indicators.sma50 != null) {
     // Ya paso la media — breakout, target es resistencia
     if (price > indicators.resistance) {
