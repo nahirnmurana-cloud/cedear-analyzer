@@ -59,8 +59,8 @@ const WEIGHT_LABELS: Record<string, string> = {
   momentum: '22%',
   trendFormation: '18%',
   entryTiming: '22%',
-  volumeConfirmation: '14%',
-  riskReward: '18%',
+  volumeConfirmation: '12%',
+  riskReward: '20%',
   setupQuality: '6%',
 };
 
