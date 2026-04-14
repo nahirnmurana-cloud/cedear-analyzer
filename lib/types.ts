@@ -87,15 +87,17 @@ export interface ScoreBreakdown {
   total: number;
 }
 
-// Score de oportunidad: detecta recuperaciones tempranas
+// Score de oportunidad: factores conceptuales (cada uno 0-100, luego ponderados)
 export interface OpportunityScore {
-  recoveryPosition: number;   // max 25 — precio abajo de media pero subiendo
-  momentumShift: number;      // max 20 — MACD/RSI girando positivo
-  breakoutSignals: number;    // max 20 — ruptura de resistencia corta
-  trendFormation: number;     // max 15 — ADX subiendo, DI+ tomando control
-  volumeConfirmation: number; // max 10 — volumen acompanando la suba
-  riskReward: number;         // max 10 — cerca de soporte, espacio para subir
-  total: number;
+  momentum: number;            // Cambio de direccion del momentum
+  trendFormation: number;      // Inicio de tendencia alcista
+  entryTiming: number;         // Que tan temprano estas (early vs late)
+  volumeConfirmation: number;  // Volumen acompanando la suba
+  riskReward: number;          // Relacion riesgo/recompensa
+  setupQuality: number;        // Calidad general del setup (evitar falsos positivos)
+  total: number;               // Score ponderado final 0-100
+  explanation: string[];       // Razones principales
+  warnings: string[];          // Advertencias
 }
 
 export type Recommendation =

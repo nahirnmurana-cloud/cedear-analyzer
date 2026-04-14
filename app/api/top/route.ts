@@ -77,8 +77,8 @@ export async function GET() {
       }
     }
 
-    // Solo los que tienen oportunidad real (score > 0 = paso los filtros de lateralidad y suba)
-    const withOpportunity = analyses.filter((a) => a.opportunityScore.total > 0);
+    // Solo los que tienen oportunidad real (score >= 35 = senales consistentes)
+    const withOpportunity = analyses.filter((a) => a.opportunityScore.total >= 35);
     withOpportunity.sort((a, b) => b.opportunityScore.total - a.opportunityScore.total);
     const top = withOpportunity.slice(0, 5).map((a) => ({
       ...a,

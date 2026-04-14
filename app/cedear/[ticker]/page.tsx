@@ -5,7 +5,6 @@ import { useCedearAnalysis } from '@/hooks/use-cedear-data';
 import { useWatchlist } from '@/hooks/use-watchlist';
 import { PriceStats } from '@/components/price-stats';
 import { ScoreGauge, ScoreBreakdownTable } from '@/components/score-gauge';
-import { RecommendationBadge } from '@/components/recommendation-badge';
 import { PriceChart } from '@/components/price-chart';
 import {
   RsiChart,
@@ -121,10 +120,6 @@ export default function CedearDetailPage({
             <h1 className="text-3xl font-bold tracking-tight">
               {data.info.localTicker}
             </h1>
-            <RecommendationBadge
-              recommendation={data.recommendation}
-              className="text-sm px-3 py-1"
-            />
           </div>
           <p className="text-muted-foreground text-sm ml-8">
             {data.info.name} &middot; {data.info.sector} &middot; Ratio{' '}
