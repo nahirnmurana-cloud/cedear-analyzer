@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import { RecommendationBadge } from './recommendation-badge';
+import { RecommendationBadge, OpportunityBadge } from './recommendation-badge';
 import { Recommendation, ScoreBreakdown, OpportunityScore } from '@/lib/types';
 
 function formatPrice(price: number): string {
@@ -41,8 +41,8 @@ export function CedearCard({
   recommendation,
   summary,
 }: CedearCardProps) {
-  // En Top 5, mostrar opportunity score. En watchlist, health score.
-  const displayScore = opportunityScore?.total ?? score.total;
+  const isOpportunityMode = opportunityScore != null && opportunityScore.total > 0;
+  const displayScore = isOpportunityMode ? opportunityScore.total : score.total;
   const ch = formatChange(change);
 
   return (
@@ -56,7 +56,11 @@ export function CedearCard({
               </h3>
               <p className="text-xs text-muted-foreground truncate">{name}</p>
             </div>
-            <RecommendationBadge recommendation={recommendation} />
+            {isOpportunityMode ? (
+              <OpportunityBadge score={opportunityScore.total} />
+            ) : (
+              <RecommendationBadge recommendation={recommendation} />
+            )}
           </div>
 
           <div className="flex items-baseline gap-2">
@@ -87,11 +91,6 @@ export function CedearCard({
               {displayScore}
             </span>
           </div>
-          {opportunityScore && (
-            <p className="text-[10px] text-muted-foreground">
-              Oportunidad: {displayScore} · Salud: {score.total}
-            </p>
-          )}
 
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
             {summary}
