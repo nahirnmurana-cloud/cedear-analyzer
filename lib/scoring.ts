@@ -1,12 +1,12 @@
-import { TechnicalIndicators, ScoreBreakdown, OpportunityScore, Recommendation } from './types';
+import { Candle, TechnicalIndicators, ScoreBreakdown, OpportunityScore, Recommendation } from './types';
+import { sma } from './indicators';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
 // ═══════════════════════════════════════════════════════
-// SCORE DE SALUD TECNICA (modelo original)
-// Evalua si un activo esta "sano" tecnicamente
+// SCORE DE SALUD TECNICA
 // ═══════════════════════════════════════════════════════
 
 export function computeScore(
@@ -55,27 +55,22 @@ export function computeScore(
 
   let volume = 0;
   const rel = indicators.volume.relative;
-  if (rel > 1.2) volume += 8;
-  else if (rel > 0.8) volume += 4;
+  if (rel > 1.2) volume += 8; else if (rel > 0.8) volume += 4;
   const priceUp = price > previousClose;
-  if ((priceUp && rel > 1.0) || (!priceUp && rel < 0.8)) volume += 7;
-  else volume += 3;
+  if ((priceUp && rel > 1.0) || (!priceUp && rel < 0.8)) volume += 7; else volume += 3;
   volume = clamp(volume, 0, 15);
 
   let volatility = 0;
   if (indicators.bollinger) {
-    if (indicators.bollinger.percentB > 20 && indicators.bollinger.percentB < 80) volatility += 4;
-    else volatility += 2;
-    if (indicators.bollinger.bandwidth > 3 && indicators.bollinger.bandwidth < 20) volatility += 3;
-    else volatility += 1;
+    if (indicators.bollinger.percentB > 20 && indicators.bollinger.percentB < 80) volatility += 4; else volatility += 2;
+    if (indicators.bollinger.bandwidth > 3 && indicators.bollinger.bandwidth < 20) volatility += 3; else volatility += 1;
   } else if (price > 0) {
     const priceRange = (indicators.resistance - indicators.support) / price;
     volatility = priceRange > 0.03 && priceRange < 0.15 ? 7 : 3;
   }
   if (indicators.atr != null && price > 0) {
     const atrPct = (indicators.atr / price) * 100;
-    if (atrPct < 3) volatility += 3;
-    else if (atrPct < 5) volatility += 1;
+    if (atrPct < 3) volatility += 3; else if (atrPct < 5) volatility += 1;
   }
   volatility = clamp(volatility, 0, 10);
 
@@ -95,149 +90,167 @@ export function computeScore(
 
 // ═══════════════════════════════════════════════════════
 // SCORE DE OPORTUNIDAD DE COMPRA
-// Detecta recuperaciones tempranas: precio abajo de la media,
-// rompiendo resistencia de corto plazo, momentum girando.
-// El objetivo es comprar ANTES de que llegue a la media.
+//
+// Detecta subas incipientes: el precio reboto de un piso,
+// esta subiendo de manera sostenida, rompio resistencia
+// de corto plazo, y tiene espacio para subir hasta la media.
+//
+// NO premia estar simplemente "debajo de la media".
+// Premia estar SUBIENDO HACIA la media.
 // ═══════════════════════════════════════════════════════
 
 export function computeOpportunityScore(
   price: number,
   indicators: TechnicalIndicators,
-  previousClose: number
+  previousClose: number,
+  candles: Candle[]
 ): OpportunityScore {
+  if (candles.length < 20 || price <= 0) {
+    return { recoveryPosition: 0, momentumShift: 0, breakoutSignals: 0, trendFormation: 0, volumeConfirmation: 0, riskReward: 0, total: 0 };
+  }
 
-  // --- POSICION DE RECUPERACION (max 25) ---
-  // Premia: precio DEBAJO de SMA50 pero mostrando signos de recuperacion
+  const closes = candles.map(c => c.close);
+  const n = candles.length;
+
+  // ── Variaciones recientes ──
+  const var5d = n >= 5 ? ((price - closes[n - 6]) / closes[n - 6]) * 100 : 0;
+  const var10d = n >= 10 ? ((price - closes[n - 11]) / closes[n - 11]) * 100 : 0;
+
+  // ── Rango de lateralidad (ultimas 10 ruedas) ──
+  const last10 = candles.slice(-10);
+  const last10High = Math.max(...last10.map(c => c.high));
+  const last10Low = Math.min(...last10.map(c => c.low));
+  const rangePct = price > 0 ? ((last10High - last10Low) / price) * 100 : 0;
+  const isLateral = rangePct < 3;
+
+  // Si esta lateralizando, NO es oportunidad de compra
+  if (isLateral) {
+    return { recoveryPosition: 0, momentumShift: 0, breakoutSignals: 0, trendFormation: 0, volumeConfirmation: 0, riskReward: 0, total: 0 };
+  }
+
+  // ── SMA20 girando al alza ──
+  const sma20Series = sma(closes, 20);
+  const sma20Now = sma20Series[n - 1];
+  const sma20Prev5 = n >= 6 ? sma20Series[n - 6] : null;
+  const sma20Rising = sma20Now != null && sma20Prev5 != null && sma20Now > sma20Prev5;
+
+  // ── MACD histograma creciente ──
+  let histGrowing = false;
+  if (indicators.macd) {
+    // Comparo histograma actual vs hace 3 ruedas (necesito indicatorSeries, uso proxy)
+    histGrowing = indicators.macd.histogram > 0 &&
+      indicators.macd.macdLine > indicators.macd.signalLine;
+  }
+
+  // ── Volumen creciente en ultimos dias de suba ──
+  const last5 = candles.slice(-5);
+  const upDaysWithVol = last5.filter((c, i) =>
+    i > 0 && c.close > last5[i - 1].close && c.volume > indicators.volume.avg20
+  ).length;
+
+  // ═══ PUNTUACION ═══
+
+  // --- SUBA SOSTENIDA (max 25) ---
+  // El precio TIENE QUE estar subiendo. Sin esto, no hay oportunidad.
   let recoveryPosition = 0;
 
-  if (indicators.sma50 != null && price > 0) {
-    const pctBelowSma50 = ((indicators.sma50 - price) / indicators.sma50) * 100;
+  // Variacion positiva de 5 ruedas (suba sostenida, no un dia verde)
+  if (var5d > 3) recoveryPosition += 10;
+  else if (var5d > 1) recoveryPosition += 5;
+  else if (var5d > 0) recoveryPosition += 2;
+  // Si cayo en 5 ruedas, no es oportunidad
+  else return { recoveryPosition: 0, momentumShift: 0, breakoutSignals: 0, trendFormation: 0, volumeConfirmation: 0, riskReward: 0, total: 0 };
 
-    // Precio debajo de SMA50 (zona de descuento)
-    if (pctBelowSma50 > 0 && pctBelowSma50 < 15) {
-      // Sweet spot: 2-10% debajo de la media = buen descuento con recuperacion probable
-      if (pctBelowSma50 >= 2 && pctBelowSma50 <= 10) recoveryPosition += 10;
-      // Apenas debajo: puede romperla pronto
-      else if (pctBelowSma50 < 2) recoveryPosition += 6;
-      // Muy lejos: mas riesgo
-      else recoveryPosition += 3;
-    }
-  }
+  // SMA20 girando al alza = la tendencia de corto plazo cambio
+  if (sma20Rising) recoveryPosition += 8;
 
   // Precio arriba de SMA20 = recuperacion de corto plazo confirmada
   if (indicators.sma20 != null && price > indicators.sma20) {
-    recoveryPosition += 8;
-  }
-
-  // Precio arriba de SMA200 pero debajo de SMA50 = correccion dentro de tendencia alcista de fondo
-  if (indicators.sma200 != null && indicators.sma50 != null) {
-    if (price > indicators.sma200 && price < indicators.sma50) {
-      recoveryPosition += 7; // Mejor escenario: pullback en tendencia alcista
-    }
+    recoveryPosition += 7;
   }
 
   recoveryPosition = clamp(recoveryPosition, 0, 25);
 
   // --- GIRO DE MOMENTUM (max 20) ---
-  // Premia: MACD cruzando al alza, RSI saliendo de zona baja, estocastico girando
   let momentumShift = 0;
 
   if (indicators.macd) {
-    // MACD cruzando signal al alza (compra tecnica clasica)
-    if (indicators.macd.macdLine > indicators.macd.signalLine) {
-      momentumShift += 6;
-    }
-    // Histograma positivo y creciente desde negativo = momentum girando
-    if (indicators.macd.histogram > 0) {
-      momentumShift += 3;
-    }
-    // MACD todavia negativo pero subiendo = la recuperacion recien empieza (mejor oportunidad)
+    // MACD cruzando signal al alza
+    if (indicators.macd.macdLine > indicators.macd.signalLine) momentumShift += 5;
+    // Histograma creciendo (no solo positivo, sino con fuerza)
+    if (histGrowing) momentumShift += 4;
+    // Bonus: cruce desde territorio negativo (la recuperacion recien empieza)
     if (indicators.macd.macdLine < 0 && indicators.macd.macdLine > indicators.macd.signalLine) {
-      momentumShift += 3; // Bonus: cruce alcista desde territorio negativo
+      momentumShift += 3;
     }
   }
 
   if (indicators.rsi != null) {
-    // RSI entre 35-55: saliendo de zona baja, no esta sobrecomprado
-    if (indicators.rsi >= 35 && indicators.rsi <= 55) {
-      momentumShift += 6;
-    }
-    // RSI < 35: sobreventa, oportunidad si otros indicadores acompanan
-    else if (indicators.rsi >= 25 && indicators.rsi < 35) {
-      momentumShift += 4;
-    }
-    // RSI > 55: ya esta caro para una "oportunidad"
+    // RSI entre 35-55: saliendo de zona baja pero no sobrecomprado
+    if (indicators.rsi >= 35 && indicators.rsi <= 55) momentumShift += 5;
+    else if (indicators.rsi > 55 && indicators.rsi <= 65) momentumShift += 2;
   }
 
   if (indicators.stochastic) {
-    // %K cruzando %D al alza desde zona baja (<50): senal de compra temprana
-    if (indicators.stochastic.k > indicators.stochastic.d && indicators.stochastic.k < 50) {
-      momentumShift += 2;
+    if (indicators.stochastic.k > indicators.stochastic.d && indicators.stochastic.k < 60) {
+      momentumShift += 3;
     }
   }
 
   momentumShift = clamp(momentumShift, 0, 20);
 
-  // --- SENALES DE BREAKOUT (max 20) ---
-  // Premia: ruptura de resistencia de corto plazo con volumen
+  // --- BREAKOUT DE CORTO PLAZO (max 20) ---
   let breakoutSignals = 0;
 
-  // Precio rompiendo resistencia de 20 ruedas
-  if (price > indicators.resistance && price > previousClose) {
+  // Rompio resistencia de 20 ruedas
+  if (price > indicators.resistance) {
     breakoutSignals += 10;
   }
-  // Precio subiendo hoy (confirmacion de direccion)
-  else if (price > previousClose) {
-    breakoutSignals += 3;
+  // Acercandose a romperla (dentro del 2%)
+  else if (indicators.resistance > 0) {
+    const distToResist = ((indicators.resistance - price) / price) * 100;
+    if (distToResist < 2) breakoutSignals += 5;
   }
 
-  // Volumen alto en dia de suba = breakout confirmado
-  if (price > previousClose && indicators.volume.relative > 1.2) {
+  // Variacion de 10 ruedas positiva = tendencia de corto plazo confirmada
+  if (var10d > 3) breakoutSignals += 5;
+  else if (var10d > 1) breakoutSignals += 2;
+
+  // Saliendo de banda inferior de Bollinger
+  if (indicators.bollinger && indicators.bollinger.percentB > 10 && indicators.bollinger.percentB < 50) {
     breakoutSignals += 5;
-  }
-
-  // Bollinger: precio saliendo de banda inferior = rebote desde extremo
-  if (indicators.bollinger) {
-    if (indicators.bollinger.percentB > 10 && indicators.bollinger.percentB < 40) {
-      breakoutSignals += 5; // Saliendo de zona baja, espacio para subir
-    }
   }
 
   breakoutSignals = clamp(breakoutSignals, 0, 20);
 
   // --- FORMACION DE TENDENCIA (max 15) ---
-  // Premia: nueva tendencia formandose (no una tendencia ya establecida)
   let trendFormation = 0;
 
   if (indicators.dmi) {
-    // ADX subiendo desde niveles bajos = nueva tendencia formandose
-    if (indicators.dmi.adx >= 15 && indicators.dmi.adx <= 30) {
-      trendFormation += 6; // Tendencia naciente, operable
-    }
-    // DI+ cruzando DI- = compradores tomando control
-    if (indicators.dmi.plusDI > indicators.dmi.minusDI) {
-      trendFormation += 5;
-    }
-    // DI+ subiendo y DI- bajando = presion compradora creciente
-    if (indicators.dmi.plusDI > indicators.dmi.minusDI &&
-        indicators.dmi.adx > 15) {
-      trendFormation += 4;
-    }
+    // DI+ dominando = compradores en control
+    if (indicators.dmi.plusDI > indicators.dmi.minusDI) trendFormation += 6;
+    // ADX en 15-30: tendencia formandose (no lateral pero tampoco madura)
+    if (indicators.dmi.adx >= 15 && indicators.dmi.adx <= 35) trendFormation += 5;
+  }
+
+  // Precio debajo de SMA50 acercandose = espacio para subir
+  if (indicators.sma50 != null && price < indicators.sma50) {
+    const distToSma50 = ((indicators.sma50 - price) / price) * 100;
+    if (distToSma50 > 2 && distToSma50 < 12) trendFormation += 4; // Sweet spot
   }
 
   trendFormation = clamp(trendFormation, 0, 15);
 
-  // --- CONFIRMACION POR VOLUMEN (max 10) ---
+  // --- VOLUMEN CRECIENTE EN SUBA (max 10) ---
   let volumeConfirmation = 0;
 
-  // Volumen superior al promedio en dia de suba
-  if (price > previousClose) {
-    if (indicators.volume.relative > 1.5) volumeConfirmation += 6;
-    else if (indicators.volume.relative > 1.0) volumeConfirmation += 3;
-  }
+  // Dias de suba con volumen alto en los ultimos 5 dias
+  if (upDaysWithVol >= 3) volumeConfirmation += 6;
+  else if (upDaysWithVol >= 2) volumeConfirmation += 4;
+  else if (upDaysWithVol >= 1) volumeConfirmation += 2;
 
-  // Volumen en general alto = interes del mercado
-  if (indicators.volume.relative > 1.2) {
+  // Volumen relativo alto hoy
+  if (indicators.volume.relative > 1.3 && price > previousClose) {
     volumeConfirmation += 4;
   }
 
@@ -246,18 +259,23 @@ export function computeOpportunityScore(
   // --- RIESGO/RECOMPENSA (max 10) ---
   let riskReward = 0;
 
+  // Cerca del soporte (poco downside si sale mal)
   if (price > 0) {
-    // Cerca del soporte = poco downside
-    const distToSupport = (price - indicators.support) / price;
-    if (distToSupport < 0.03) riskReward += 5;
-    else if (distToSupport < 0.06) riskReward += 3;
+    const distToSupport = ((price - indicators.support) / price) * 100;
+    if (distToSupport < 3) riskReward += 4;
+    else if (distToSupport < 6) riskReward += 2;
+  }
 
-    // Espacio para subir hasta SMA50
-    if (indicators.sma50 != null && indicators.sma50 > price) {
-      const upsidePct = ((indicators.sma50 - price) / price) * 100;
-      if (upsidePct > 3 && upsidePct < 15) riskReward += 5; // Upside atractivo y realista
-      else if (upsidePct >= 1) riskReward += 2;
-    }
+  // Espacio para subir hasta SMA50 (upside target)
+  if (indicators.sma50 != null && indicators.sma50 > price) {
+    const upsidePct = ((indicators.sma50 - price) / price) * 100;
+    if (upsidePct > 3 && upsidePct < 15) riskReward += 4; // Upside atractivo
+    else if (upsidePct >= 2) riskReward += 2;
+  }
+
+  // Ya llego a la media o esta por encima = ya no es oportunidad de "compra barata"
+  if (indicators.sma50 != null && price >= indicators.sma50) {
+    riskReward += 2; // Algo de puntos por haber superado la media (breakout)
   }
 
   riskReward = clamp(riskReward, 0, 10);
@@ -285,9 +303,9 @@ export function getRecommendation(score: number): Recommendation {
 }
 
 export function getOpportunityLabel(score: number): string {
-  if (score >= 75) return 'Oportunidad muy fuerte';
-  if (score >= 60) return 'Buena oportunidad';
-  if (score >= 45) return 'Oportunidad moderada';
-  if (score >= 25) return 'Oportunidad debil';
+  if (score >= 70) return 'Oportunidad fuerte';
+  if (score >= 55) return 'Buena oportunidad';
+  if (score >= 40) return 'Oportunidad moderada';
+  if (score >= 20) return 'Oportunidad debil';
   return 'Sin oportunidad';
 }

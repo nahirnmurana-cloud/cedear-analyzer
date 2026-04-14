@@ -49,7 +49,7 @@ export async function GET(
 
     const { latest: indicators, series: indicatorSeries } = computeIndicators(candles);
     const score = computeScore(currentPrice, indicators, previousClose);
-    const opportunityScore = computeOpportunityScore(currentPrice, indicators, previousClose);
+    const opportunityScore = computeOpportunityScore(currentPrice, indicators, previousClose, candles);
     const recommendation = getRecommendation(score.total);
     const summary = generateSummary(
       info.ticker,

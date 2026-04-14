@@ -53,7 +53,7 @@ export async function GET() {
 
         const { latest: indicators, series: indicatorSeries } = computeIndicators(candles);
         const score = computeScore(currentPrice, indicators, previousClose);
-        const opportunityScore = computeOpportunityScore(currentPrice, indicators, previousClose);
+        const opportunityScore = computeOpportunityScore(currentPrice, indicators, previousClose, candles);
         const recommendation = getRecommendation(score.total);
         const summary = generateSummary(cedear.ticker, currentPrice, indicators, score, recommendation);
 
@@ -77,9 +77,10 @@ export async function GET() {
       }
     }
 
-    // Ordenar por OPORTUNIDAD de compra, no por salud tecnica
-    analyses.sort((a, b) => b.opportunityScore.total - a.opportunityScore.total);
-    const top = analyses.slice(0, 5).map((a) => ({
+    // Solo los que tienen oportunidad real (score > 0 = paso los filtros de lateralidad y suba)
+    const withOpportunity = analyses.filter((a) => a.opportunityScore.total > 0);
+    withOpportunity.sort((a, b) => b.opportunityScore.total - a.opportunityScore.total);
+    const top = withOpportunity.slice(0, 5).map((a) => ({
       ...a,
       candles: [],
       indicatorSeries: {
