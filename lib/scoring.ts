@@ -99,8 +99,8 @@ export function computeScore(
 //   Momentum:      22%  — cambio de direccion
 //   Tendencia:     18%  — inicio de trend
 //   Entry Timing:  22%  — que tan temprano estas
-//   Volumen:       14%  — confirmacion
-//   Riesgo/Rec:    18%  — vale la pena
+//   Volumen:       12%  — confirmacion
+//   Riesgo/Rec:    20%  — vale la pena
 //   Calidad:        6%  — filtro de ruido
 // ═══════════════════════════════════════════════════════
 
@@ -108,8 +108,8 @@ const WEIGHTS = {
   momentum: 0.22,
   trendFormation: 0.18,
   entryTiming: 0.22,
-  volumeConfirmation: 0.14,
-  riskReward: 0.18,
+  volumeConfirmation: 0.12,
+  riskReward: 0.20,
   setupQuality: 0.06,
 };
 
@@ -193,47 +193,78 @@ function scoreTrendFormation(indicators: TechnicalIndicators, price: number, sma
 
 // --- Factor: Entry Timing (0-100) ---
 // Que tan temprano estas en el movimiento
+// Combina: distancia a medias, pendiente de SMAs, extension reciente, pullback
 function scoreEntryTiming(
   price: number, indicators: TechnicalIndicators,
-  var5d: number, var10d: number
+  var5d: number, var10d: number,
+  sma20Rising: boolean, sma50Slope: number // slope = pendiente de SMA50 en %
 ): { score: number; reasons: string[]; warns: string[] } {
   let s = 0;
   const reasons: string[] = [];
   const warns: string[] = [];
 
-  // Distancia a SMA50: debajo pero acercandose = early
+  // 1. Distancia a SMA50: debajo pero acercandose = early entry
   if (indicators.sma50 != null && price > 0) {
     const distPct = ((indicators.sma50 - price) / price) * 100;
     if (distPct > 2 && distPct < 12) {
-      s += 35; // Sweet spot: debajo de la media con espacio
+      s += 25;
       reasons.push(`${distPct.toFixed(1)}% debajo de SMA50 (entrada temprana)`);
     } else if (distPct >= 0 && distPct <= 2) {
-      s += 20; // A punto de romper
+      s += 15;
       reasons.push('Cerca de SMA50, posible ruptura');
     } else if (distPct < 0 && distPct > -3) {
-      s += 10; // Apenas arriba, todavia aceptable
+      s += 5; // Apenas arriba, aceptable
     } else if (distPct < -5) {
-      s -= 15; // Muy arriba de la media = llegaste tarde
+      s -= 15;
       warns.push('Ya supero la media por mucho (entrada tardia)');
+    } else if (distPct > 15) {
+      s -= 10;
+      warns.push('Muy lejos de SMA50 (caida profunda)');
     }
   }
 
-  // Pullback en tendencia alcista (debajo de SMA50 pero arriba de SMA200)
+  // 2. Pullback en tendencia alcista de fondo
   if (indicators.sma200 != null && indicators.sma50 != null) {
     if (price > indicators.sma200 && price < indicators.sma50) {
-      s += 30;
-      reasons.push('Pullback en tendencia alcista de fondo');
+      s += 20;
+      reasons.push('Pullback en tendencia alcista (arriba SMA200, debajo SMA50)');
     }
   }
 
-  // Variacion de corto plazo como penalizacion/bonus suave (no hard filter)
-  if (var5d > 3) s += 20;
-  else if (var5d > 0) s += 10;
-  else if (var5d > -2) s -= 5; // Caida leve, penalizacion suave
-  else s -= 20; // Caida fuerte, penalizacion fuerte
+  // 3. Pendiente de SMA50: si la media esta subiendo, la tendencia de fondo es alcista
+  if (sma50Slope > 0.5) {
+    s += 10;
+    reasons.push('SMA50 con pendiente alcista');
+  } else if (sma50Slope < -0.5) {
+    s -= 10;
+    warns.push('SMA50 con pendiente bajista');
+  }
 
-  if (var10d > 5) s += 15;
-  else if (var10d > 0) s += 5;
+  // 4. SMA20 girando al alza = la corto plazo cambio de direccion
+  if (sma20Rising) s += 10;
+
+  // 5. Variacion reciente: suba sostenida vs extension excesiva
+  if (var5d > 8) {
+    s -= 5; // Subio mucho en pocos dias = puede corregir
+    warns.push(`Subio ${var5d.toFixed(1)}% en 5 ruedas (posible extension)`);
+  } else if (var5d > 3) {
+    s += 15;
+  } else if (var5d > 0) {
+    s += 8;
+  } else if (var5d > -2) {
+    s -= 5;
+  } else {
+    s -= 15;
+  }
+
+  if (var10d > 15) {
+    s -= 10;
+    warns.push('Rally ya extendido en 10 ruedas');
+  } else if (var10d > 3) {
+    s += 10;
+  } else if (var10d > 0) {
+    s += 5;
+  }
 
   return { score: clamp(s, 0, 100), reasons, warns };
 }
@@ -421,6 +452,14 @@ export function computeOpportunityScore(
   const sma20Prev5 = n >= 6 ? sma20Series[n - 6] : null;
   const sma20Rising = sma20Now != null && sma20Prev5 != null && sma20Now > sma20Prev5;
 
+  // SMA50 pendiente (variacion % en 10 ruedas)
+  const sma50Series = sma(closes, 50);
+  const sma50Now = sma50Series[n - 1];
+  const sma50Prev10 = n >= 11 ? sma50Series[n - 11] : null;
+  const sma50Slope = sma50Now != null && sma50Prev10 != null && sma50Prev10 > 0
+    ? ((sma50Now - sma50Prev10) / sma50Prev10) * 100
+    : 0;
+
   // Dias de suba con volumen
   const last5 = candles.slice(-5);
   const upDaysWithVol = last5.filter((c, i) =>
@@ -430,13 +469,13 @@ export function computeOpportunityScore(
   // Calcular cada factor
   const mom = scoreMomentum(indicators);
   const trend = scoreTrendFormation(indicators, price, sma20Rising);
-  const timing = scoreEntryTiming(price, indicators, var5d, var10d);
+  const timing = scoreEntryTiming(price, indicators, var5d, var10d, sma20Rising, sma50Slope);
   const vol = scoreVolume(indicators, price, previousClose, upDaysWithVol);
   const rr = scoreRiskReward(price, indicators);
   const quality = scoreSetupQuality(var5d, rangePct, indicators);
 
   // Score ponderado
-  const total = Math.round(
+  let total = Math.round(
     mom.score * WEIGHTS.momentum +
     trend.score * WEIGHTS.trendFormation +
     timing.score * WEIGHTS.entryTiming +
@@ -445,15 +484,36 @@ export function computeOpportunityScore(
     quality.score * WEIGHTS.setupQuality
   );
 
-  // Juntar explicaciones
-  const explanation = [
-    ...mom.reasons, ...trend.reasons, ...timing.reasons,
-    ...vol.reasons, ...rr.reasons, ...quality.reasons,
-  ];
-  const warnings = [
+  // Cap suave por calidad: si calidad < 30, el score se enfria un 30%
+  if (quality.score < 30) {
+    total = Math.round(total * 0.7);
+  }
+
+  // Seleccionar top 2 drivers + top warning para la explicacion
+  const allFactors = [
+    { name: 'Momentum', score: mom.score, reasons: mom.reasons },
+    { name: 'Tendencia', score: trend.score, reasons: trend.reasons },
+    { name: 'Timing', score: timing.score, reasons: timing.reasons },
+    { name: 'Volumen', score: vol.score, reasons: vol.reasons },
+    { name: 'R/R', score: rr.score, reasons: rr.reasons },
+  ].sort((a, b) => b.score - a.score);
+
+  // Top 2 drivers con sus razones
+  const explanation: string[] = [];
+  for (const f of allFactors.slice(0, 2)) {
+    if (f.reasons.length > 0) explanation.push(f.reasons[0]);
+  }
+  // Agregar razones extra relevantes
+  for (const f of allFactors.slice(2)) {
+    if (f.score >= 60 && f.reasons.length > 0) explanation.push(f.reasons[0]);
+  }
+
+  const allWarnings = [
     ...mom.warns, ...trend.warns, ...timing.warns,
     ...vol.warns, ...rr.warns, ...quality.warns,
   ];
+  // Top 3 warnings
+  const warnings = allWarnings.slice(0, 3);
 
   return {
     momentum: mom.score,
@@ -476,10 +536,18 @@ export function getRecommendation(score: number): Recommendation {
   return 'Vender';
 }
 
-export function getOpportunityLabel(score: number): string {
-  if (score >= 70) return 'Oportunidad fuerte';
+// Regla de consistencia: no dar "fuerte" si algun factor clave esta flojo
+export function getOpportunityLabel(score: number, factors?: OpportunityScore): string {
+  if (score >= 70) {
+    // Verificar consistencia: todos los factores clave >= 30
+    if (factors) {
+      const weakFactor = factors.momentum < 30 || factors.riskReward < 30 || factors.entryTiming < 30;
+      if (weakFactor) return 'Buena oportunidad'; // Degradar si hay factor debil
+    }
+    return 'Oportunidad fuerte';
+  }
   if (score >= 55) return 'Buena oportunidad';
-  if (score >= 40) return 'Oportunidad moderada';
+  if (score >= 40) return 'Setup interesante';
   if (score >= 20) return 'Oportunidad debil';
   return 'Sin oportunidad';
 }

@@ -20,6 +20,12 @@ function formatChange(change: number): { text: string; color: string } {
   };
 }
 
+function healthLabel(score: number): { text: string; color: string } {
+  if (score >= 60) return { text: 'Alta', color: 'text-green-500' };
+  if (score >= 40) return { text: 'Media', color: 'text-yellow-500' };
+  return { text: 'Baja', color: 'text-red-500' };
+}
+
 interface CedearCardProps {
   ticker: string;
   name: string;
@@ -44,6 +50,7 @@ export function CedearCard({
   const isOpportunityMode = opportunityScore != null && opportunityScore.total > 0;
   const displayScore = isOpportunityMode ? opportunityScore.total : score.total;
   const ch = formatChange(change);
+  const health = healthLabel(score.total);
 
   return (
     <Link href={`/cedear/${encodeURIComponent(ticker)}`}>
@@ -57,7 +64,7 @@ export function CedearCard({
               <p className="text-xs text-muted-foreground truncate">{name}</p>
             </div>
             {isOpportunityMode ? (
-              <OpportunityBadge score={opportunityScore.total} />
+              <OpportunityBadge opportunityScore={opportunityScore} />
             ) : (
               <RecommendationBadge recommendation={recommendation} />
             )}
@@ -91,6 +98,20 @@ export function CedearCard({
               {displayScore}
             </span>
           </div>
+
+          {/* Salud tecnica chica */}
+          {isOpportunityMode && (
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-muted-foreground">
+                Salud: <span className={`font-semibold ${health.color}`}>{health.text} ({score.total})</span>
+              </span>
+              {score.total < 45 && opportunityScore.total >= 55 && (
+                <span className="text-green-600 dark:text-green-400 font-medium">
+                  Reversion temprana
+                </span>
+              )}
+            </div>
+          )}
 
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
             {summary}

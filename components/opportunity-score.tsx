@@ -16,7 +16,7 @@ export function OpportunityGauge({ score }: { score: OpportunityScore }) {
   const color = getColor(total);
   const circumference = 2 * Math.PI * 45;
   const progress = (total / 100) * circumference;
-  const label = getOpportunityLabel(total);
+  const label = getOpportunityLabel(total, score);
 
   return (
     <div className="flex flex-col items-center gap-1">

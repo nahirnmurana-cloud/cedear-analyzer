@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
-import { Recommendation } from '@/lib/types';
+import { Recommendation, OpportunityScore } from '@/lib/types';
+import { getOpportunityLabel } from '@/lib/scoring';
 
 const colorMap: Record<Recommendation, string> = {
   'Compra Fuerte': 'bg-green-600 hover:bg-green-700 text-white',
@@ -23,33 +24,26 @@ export function RecommendationBadge({
   );
 }
 
-// Badge para oportunidad de compra
-type OpportunityLevel = 'Oportunidad fuerte' | 'Buena oportunidad' | 'Oportunidad moderada' | 'Oportunidad debil' | 'Sin oportunidad';
-
-const opportunityColorMap: Record<OpportunityLevel, string> = {
+const opportunityColorMap: Record<string, string> = {
   'Oportunidad fuerte': 'bg-green-600 hover:bg-green-700 text-white',
   'Buena oportunidad': 'bg-green-500 hover:bg-green-600 text-white',
-  'Oportunidad moderada': 'bg-yellow-500 hover:bg-yellow-600 text-white',
+  'Setup interesante': 'bg-yellow-500 hover:bg-yellow-600 text-white',
   'Oportunidad debil': 'bg-orange-500 hover:bg-orange-600 text-white',
   'Sin oportunidad': 'bg-gray-400 hover:bg-gray-500 text-white',
 };
 
 export function OpportunityBadge({
-  score,
+  opportunityScore,
   className = '',
 }: {
-  score: number;
+  opportunityScore: OpportunityScore;
   className?: string;
 }) {
-  let label: OpportunityLevel;
-  if (score >= 70) label = 'Oportunidad fuerte';
-  else if (score >= 55) label = 'Buena oportunidad';
-  else if (score >= 40) label = 'Oportunidad moderada';
-  else if (score >= 20) label = 'Oportunidad debil';
-  else label = 'Sin oportunidad';
+  const label = getOpportunityLabel(opportunityScore.total, opportunityScore);
+  const colorClass = opportunityColorMap[label] ?? 'bg-gray-400 text-white';
 
   return (
-    <Badge className={`${opportunityColorMap[label]} ${className}`}>
+    <Badge className={`${colorClass} ${className}`}>
       {label}
     </Badge>
   );
