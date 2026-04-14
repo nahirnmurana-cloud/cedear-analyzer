@@ -135,7 +135,7 @@ function WatchlistCard({
 }
 
 export function Watchlist() {
-  const { tickers, removeTicker, loaded } = useWatchlist();
+  const { tickers, removeTicker, loaded, isLoggedIn } = useWatchlist();
 
   if (!loaded) return null;
 
@@ -160,7 +160,9 @@ export function Watchlist() {
             </svg>
             <p className="font-medium">Tu watchlist esta vacia</p>
             <p className="text-sm mt-1">
-              Busca un CEDEAR y agregalo para seguirlo de cerca
+              {isLoggedIn
+                ? 'Busca un CEDEAR y agregalo para seguirlo de cerca'
+                : 'Inicia sesion para guardar tu watchlist y sincronizarla en todos tus dispositivos'}
             </p>
           </CardContent>
         </Card>

@@ -1,9 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { SignInButton, UserButton, useUser } from '@clerk/nextjs';
 import { ThemeToggle } from './theme-toggle';
+import { Button } from './ui/button';
 
 export function Header() {
+  const { isSignedIn, isLoaded } = useUser();
+
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
       <div className="container mx-auto flex h-14 items-center px-4">
@@ -29,8 +33,19 @@ export function Header() {
             </span>
           </span>
         </Link>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
           <ThemeToggle />
+          {isLoaded && (
+            isSignedIn ? (
+              <UserButton />
+            ) : (
+              <SignInButton mode="modal">
+                <Button variant="outline" size="sm" className="text-xs">
+                  Iniciar sesion
+                </Button>
+              </SignInButton>
+            )
+          )}
         </div>
       </div>
     </header>
