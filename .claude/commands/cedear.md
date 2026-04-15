@@ -58,6 +58,7 @@ Sos el asistente de desarrollo del proyecto CEDEAR Analyzer.
 5. UI en espanol
 6. Deploy: `git push && vercel deploy --prod`
 7. Clerk: auth() y clerkClient() son async (Core 3). Importar de `@clerk/nextjs/server`.
+8. Clerk env vars: Marketplace provisiona solo en Dev. Copiar CLERK_SECRET_KEY y NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY a Production con `vercel env add`. Sin esto da MIDDLEWARE_INVOCATION_FAILED.
 
 ## Mejoras futuras
 - Oportunidades de venta (tendencia bajista despues de romper media)

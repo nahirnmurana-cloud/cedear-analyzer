@@ -142,6 +142,13 @@ Auth via Clerk (Vercel Marketplace). Env vars auto-provisioned:
 
 La watchlist se guarda en Clerk user metadata (sin base de datos). Sin login, se usa localStorage.
 
+**Importante:** Vercel Marketplace provisiona las keys de Clerk solo en Development. Hay que copiarlas a Production manualmente:
+```bash
+vercel env add CLERK_SECRET_KEY production --value "sk_..." --yes
+vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY production --value "pk_..." --yes
+```
+Sin esto, el middleware falla con `MIDDLEWARE_INVOCATION_FAILED`.
+
 ## Disclaimer
 
 Esta herramienta es exclusivamente informativa y educativa. No constituye asesoramiento financiero ni recomendacion de inversion. Los indicadores tecnicos no garantizan resultados futuros. El backtesting no contempla comisiones, spread ni slippage. Consulte a un asesor financiero matriculado antes de invertir.
