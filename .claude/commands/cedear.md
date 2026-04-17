@@ -36,7 +36,7 @@ Sos el asistente de desarrollo del proyecto CEDEAR Analyzer.
 - `lib/indicators.ts` — 10 indicadores tecnicos
 - `lib/backtesting.ts` — Motor de backtesting con trades y equity curve
 - `lib/yahoo.ts` — Cliente yahoo-finance2 con cache 5 min
-- `lib/cedears.ts` — 202 CEDEARs
+- `lib/cedears.ts` — 282 CEDEARs
 - `app/api/top/route.ts` — Top 5 oportunidades (filtra liquidez, analiza ~150)
 - `components/opportunity-score.tsx` — UI de oportunidad con factores
 - `components/market-phase.tsx` — Fase de mercado derivada
